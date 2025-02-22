@@ -1,5 +1,5 @@
 {
-  description = "RayMC - MC Clone in raylib";
+  description = "Raychess - chess in raylib";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -25,7 +25,7 @@
         ];
       in {
         packages.default = pkgs.stdenv.mkDerivation {
-          pname = "raymc";
+          pname = "raychess";
           version = "0.0.1";
 
           src = ./src;
@@ -35,8 +35,8 @@
 
           installPhase = ''
             mkdir -p $out/bin
-            gcc main.c -o $out/bin/raymc -lraylib -lm
-            chmod +x $out/bin/raymc
+            gcc main.c -o $out/bin/raychess -lraylib -lm
+            chmod +x $out/bin/raychess
           '';
         };
         devShells.default = pkgs.mkShell {
