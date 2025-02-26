@@ -1,5 +1,6 @@
 #include <math.h>
 #include <raylib.h>
+#include <raymath.h>
 
 #define FONT_SIZE 20
 #define GAME_SCREEN_SIZE 720
@@ -9,12 +10,12 @@
 
 typedef enum GameMode { MENU = 0, GAME } GameMode;
 
-typedef struct Cell {
+typedef struct {
   int x;
   int y;
 } Cell;
 
-typedef struct Textures {
+typedef struct {
   Texture2D darkCell;
   Texture2D lightCell;
   Texture2D blackKing;
@@ -31,18 +32,22 @@ typedef struct Textures {
   Texture2D whiteRook;
 } Textures;
 
-typedef enum PieceType { PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING } PieceType;
+typedef enum { PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING } PieceType;
 
-typedef struct Piece {
+typedef struct {
   PieceType type;
   Vector2 position;
   bool isWhite;
   Texture2D texture;
 } Piece;
 
-Textures textures;
-Piece pieces[MAX_PIECES];
-int pieceCount = 0;
+typedef struct {
+  Piece pieces[MAX_PIECES];
+  int pieceCount;
+  Textures textures;
+} GameState;
+
+GameState store;
 
 Texture2D texture_from_image(const char *path) {
   Image image = LoadImage(path);
@@ -52,98 +57,142 @@ Texture2D texture_from_image(const char *path) {
 };
 
 void load_textures() {
-  textures.darkCell = texture_from_image("src/assets/square_brown_dark.png");
-  textures.lightCell = texture_from_image("src/assets/square_gray_dark.png");
-  textures.blackKing = texture_from_image("src/assets/b_king.png");
-  textures.blackQueen = texture_from_image("src/assets/b_queen.png");
-  textures.blackPawn = texture_from_image("src/assets/b_pawn.png");
-  textures.blackBishop = texture_from_image("src/assets/b_bishop.png");
-  textures.blackKnight = texture_from_image("src/assets/b_knight.png");
-  textures.blackRook = texture_from_image("src/assets/b_rook.png");
+  store.textures.darkCell =
+      texture_from_image("src/assets/square_brown_light.png");
+  store.textures.lightCell =
+      texture_from_image("src/assets/square_gray_light.png");
+  store.textures.blackKing = texture_from_image("src/assets/b_king.png");
+  store.textures.blackQueen = texture_from_image("src/assets/b_queen.png");
+  store.textures.blackPawn = texture_from_image("src/assets/b_pawn.png");
+  store.textures.blackBishop = texture_from_image("src/assets/b_bishop.png");
+  store.textures.blackKnight = texture_from_image("src/assets/b_knight.png");
+  store.textures.blackRook = texture_from_image("src/assets/b_rook.png");
 
-  textures.whiteKing = texture_from_image("src/assets/w_king.png");
-  textures.whiteQueen = texture_from_image("src/assets/w_queen.png");
-  textures.whitePawn = texture_from_image("src/assets/w_pawn.png");
-  textures.whiteBishop = texture_from_image("src/assets/w_bishop.png");
-  textures.whiteKnight = texture_from_image("src/assets/w_knight.png");
-  textures.whiteRook = texture_from_image("src/assets/w_rook.png");
+  store.textures.whiteKing = texture_from_image("src/assets/w_king.png");
+  store.textures.whiteQueen = texture_from_image("src/assets/w_queen.png");
+  store.textures.whitePawn = texture_from_image("src/assets/w_pawn.png");
+  store.textures.whiteBishop = texture_from_image("src/assets/w_bishop.png");
+  store.textures.whiteKnight = texture_from_image("src/assets/w_knight.png");
+  store.textures.whiteRook = texture_from_image("src/assets/w_rook.png");
 };
 
 void unload_textures() {
-  UnloadTexture(textures.darkCell);
-  UnloadTexture(textures.lightCell);
-  UnloadTexture(textures.blackKing);
-  UnloadTexture(textures.blackQueen);
-  UnloadTexture(textures.blackPawn);
-  UnloadTexture(textures.blackBishop);
-  UnloadTexture(textures.blackKnight);
-  UnloadTexture(textures.blackRook);
-  UnloadTexture(textures.whiteKing);
-  UnloadTexture(textures.whiteQueen);
-  UnloadTexture(textures.whitePawn);
-  UnloadTexture(textures.whiteBishop);
-  UnloadTexture(textures.whiteKnight);
-  UnloadTexture(textures.whiteRook);
+  UnloadTexture(store.textures.darkCell);
+  UnloadTexture(store.textures.lightCell);
+  UnloadTexture(store.textures.blackKing);
+  UnloadTexture(store.textures.blackQueen);
+  UnloadTexture(store.textures.blackPawn);
+  UnloadTexture(store.textures.blackBishop);
+  UnloadTexture(store.textures.blackKnight);
+  UnloadTexture(store.textures.blackRook);
+  UnloadTexture(store.textures.whiteKing);
+  UnloadTexture(store.textures.whiteQueen);
+  UnloadTexture(store.textures.whitePawn);
+  UnloadTexture(store.textures.whiteBishop);
+  UnloadTexture(store.textures.whiteKnight);
+  UnloadTexture(store.textures.whiteRook);
 };
+
+bool is_move_valid(Piece piece, Vector2 targetPos) {
+  if (targetPos.x < 0 || targetPos.x >= COLUMNS || targetPos.y < 0 ||
+      targetPos.y >= ROWS)
+    return false;
+
+  for (int i = 0; i < store.pieceCount; i++) {
+    if (Vector2Equals(store.pieces[i].position, targetPos) &&
+        store.pieces[i].isWhite == store.pieces[i].isWhite) {
+      return false;
+    }
+  }
+
+  switch (piece.type) {
+  case PAWN: {
+    if (piece.isWhite) {
+      return (targetPos.y == piece.position.y - 1) &&
+             (targetPos.x == piece.position.x);
+    } else {
+      return (targetPos.y == piece.position.y + 1) &&
+             (targetPos.x == piece.position.x);
+    }
+  }
+  case ROOK: {
+    return (targetPos.x == piece.position.x || targetPos.y == piece.position.y);
+  }
+  case BISHOP: {
+  }
+  case KNIGHT: {
+  }
+  case QUEEN: {
+  }
+  case KING: {
+  }
+  default:
+    return false;
+  }
+}
 
 void init_pieces() {
   for (int i = 0; i < COLUMNS; i++) {
-    pieces[pieceCount++] =
-        (Piece){PAWN, (Vector2){i, 6}, true, textures.whitePawn};
-    pieces[pieceCount++] =
-        (Piece){PAWN, (Vector2){i, 1}, false, textures.blackPawn};
+    store.pieces[store.pieceCount++] =
+        (Piece){PAWN, (Vector2){i, 6}, true, store.textures.whitePawn};
+    store.pieces[store.pieceCount++] =
+        (Piece){PAWN, (Vector2){i, 1}, false, store.textures.blackPawn};
   }
 
-  pieces[pieceCount++] = (Piece){.type = KING,
-                                 .position = (Vector2){4, 7},
-                                 .isWhite = true,
-                                 .texture = textures.whiteKing};
-  pieces[pieceCount++] = (Piece){.type = KING,
-                                 .position = (Vector2){4, 0},
-                                 .isWhite = false,
-                                 .texture = textures.blackKing};
-  pieces[pieceCount++] = (Piece){.type = QUEEN,
-                                 .position = (Vector2){3, 7},
-                                 .isWhite = true,
-                                 .texture = textures.whiteQueen};
-  pieces[pieceCount++] = (Piece){.type = QUEEN,
-                                 .position = (Vector2){3, 0},
-                                 .isWhite = false,
-                                 .texture = textures.blackQueen};
-  pieces[pieceCount++] =
-      (Piece){ROOK, (Vector2){0, 7}, true, textures.whiteRook};
-  pieces[pieceCount++] =
-      (Piece){ROOK, (Vector2){7, 7}, true, textures.whiteRook};
-  pieces[pieceCount++] =
-      (Piece){ROOK, (Vector2){0, 0}, false, textures.blackRook};
-  pieces[pieceCount++] =
-      (Piece){ROOK, (Vector2){7, 0}, false, textures.blackRook};
+  store.pieces[store.pieceCount++] =
+      (Piece){.type = KING,
+              .position = (Vector2){4, 7},
+              .isWhite = true,
+              .texture = store.textures.whiteKing};
+  store.pieces[store.pieceCount++] =
+      (Piece){.type = KING,
+              .position = (Vector2){4, 0},
+              .isWhite = false,
+              .texture = store.textures.blackKing};
+  store.pieces[store.pieceCount++] =
+      (Piece){.type = QUEEN,
+              .position = (Vector2){3, 7},
+              .isWhite = true,
+              .texture = store.textures.whiteQueen};
+  store.pieces[store.pieceCount++] =
+      (Piece){.type = QUEEN,
+              .position = (Vector2){3, 0},
+              .isWhite = false,
+              .texture = store.textures.blackQueen};
+  store.pieces[store.pieceCount++] =
+      (Piece){ROOK, (Vector2){0, 7}, true, store.textures.whiteRook};
+  store.pieces[store.pieceCount++] =
+      (Piece){ROOK, (Vector2){7, 7}, true, store.textures.whiteRook};
+  store.pieces[store.pieceCount++] =
+      (Piece){ROOK, (Vector2){0, 0}, false, store.textures.blackRook};
+  store.pieces[store.pieceCount++] =
+      (Piece){ROOK, (Vector2){7, 0}, false, store.textures.blackRook};
 
-  pieces[pieceCount++] =
-      (Piece){KNIGHT, (Vector2){1, 7}, true, textures.whiteKnight};
-  pieces[pieceCount++] =
-      (Piece){KNIGHT, (Vector2){6, 7}, true, textures.whiteKnight};
-  pieces[pieceCount++] =
-      (Piece){KNIGHT, (Vector2){1, 0}, false, textures.blackKnight};
-  pieces[pieceCount++] =
-      (Piece){KNIGHT, (Vector2){6, 0}, false, textures.blackKnight};
+  store.pieces[store.pieceCount++] =
+      (Piece){KNIGHT, (Vector2){1, 7}, true, store.textures.whiteKnight};
+  store.pieces[store.pieceCount++] =
+      (Piece){KNIGHT, (Vector2){6, 7}, true, store.textures.whiteKnight};
+  store.pieces[store.pieceCount++] =
+      (Piece){KNIGHT, (Vector2){1, 0}, false, store.textures.blackKnight};
+  store.pieces[store.pieceCount++] =
+      (Piece){KNIGHT, (Vector2){6, 0}, false, store.textures.blackKnight};
 
-  pieces[pieceCount++] =
-      (Piece){BISHOP, (Vector2){2, 7}, true, textures.whiteBishop};
-  pieces[pieceCount++] =
-      (Piece){BISHOP, (Vector2){5, 7}, true, textures.whiteBishop};
-  pieces[pieceCount++] =
-      (Piece){BISHOP, (Vector2){2, 0}, false, textures.blackBishop};
-  pieces[pieceCount++] =
-      (Piece){BISHOP, (Vector2){5, 0}, false, textures.blackBishop};
+  store.pieces[store.pieceCount++] =
+      (Piece){BISHOP, (Vector2){2, 7}, true, store.textures.whiteBishop};
+  store.pieces[store.pieceCount++] =
+      (Piece){BISHOP, (Vector2){5, 7}, true, store.textures.whiteBishop};
+  store.pieces[store.pieceCount++] =
+      (Piece){BISHOP, (Vector2){2, 0}, false, store.textures.blackBishop};
+  store.pieces[store.pieceCount++] =
+      (Piece){BISHOP, (Vector2){5, 0}, false, store.textures.blackBishop};
 }
 
 void draw_grid(Cell cell, int cellWidth, Vector2 gameScreenPos) {
   Texture2D texture;
   if ((cell.x + cell.y) % 2 == 0) { // Alternating textures
-    texture = textures.darkCell;
+    texture = store.textures.darkCell;
   } else {
-    texture = textures.lightCell;
+    texture = store.textures.lightCell;
   }
 
   Vector2 position = {gameScreenPos.x + cell.x * cellWidth,
@@ -153,8 +202,8 @@ void draw_grid(Cell cell, int cellWidth, Vector2 gameScreenPos) {
 };
 
 void draw_pieces(int cellWidth, Vector2 gameScreenPos) {
-  for (int i = 0; i < pieceCount; i++) {
-    Piece p = pieces[i];
+  for (int i = 0; i < store.pieceCount; i++) {
+    Piece p = store.pieces[i];
     Vector2 screenPos = {
         (gameScreenPos.x + (cellWidth / 4)) + p.position.x * cellWidth,
         (gameScreenPos.y + (cellWidth / 4)) + p.position.y * cellWidth};
@@ -172,6 +221,7 @@ int main(void) {
 
   Cell grid[COLUMNS][ROWS];
   int cellWidth = GAME_SCREEN_SIZE / 8;
+  int selectedPieceIndex = 0;
   GameMode currentScreen = MENU;
 
   InitWindow(screenWidth, screenHeight, "Raychess");
@@ -194,6 +244,23 @@ int main(void) {
     case GAME: {
       if (IsKeyPressed(KEY_ENTER)) {
         currentScreen = MENU;
+      }
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 mousePos = GetMousePosition();
+        Vector2 gridPos = (Vector2){(mousePos.x - gameScreenPos.x) / cellWidth,
+                                    (mousePos.y - gameScreenPos.y) / cellWidth};
+        for (int i = 0; i < store.pieceCount; i++) {
+          if (Vector2Equals(store.pieces[i].position, gridPos)) {
+            selectedPieceIndex = i;
+          }
+        }
+
+        if (selectedPieceIndex != -1) {
+          if (is_move_valid(store.pieces[selectedPieceIndex], gridPos)) {
+            store.pieces[selectedPieceIndex].position = gridPos;
+          }
+          selectedPieceIndex = -1;
+        }
       }
     } break;
     default:

@@ -1,5 +1,5 @@
 {
-  description = "Raychess - chess in raylib";
+  description = "Chessd - Chess in raylib";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -25,7 +25,7 @@
         ];
       in {
         packages.default = pkgs.stdenv.mkDerivation {
-          pname = "raychess";
+          pname = "chessd";
           version = "0.0.1";
 
           src = ./src;
@@ -35,8 +35,8 @@
 
           installPhase = ''
             mkdir -p $out/bin
-            gcc main.c -o $out/bin/raychess -lraylib -lm
-            chmod +x $out/bin/raychess
+            gcc main.c -o $out/bin/chessd -lraylib -lm
+            chmod +x $out/bin/chessd
           '';
         };
         devShells.default = pkgs.mkShell {
