@@ -100,7 +100,7 @@ bool is_move_valid(Piece piece, Vector2 targetPos) {
 
   for (int i = 0; i < store.pieceCount; i++) {
     if (Vector2Equals(store.pieces[i].position, targetPos) &&
-        store.pieces[i].isWhite == store.pieces[i].isWhite) {
+        store.pieces[i].isWhite == piece.isWhite) {
       return false;
     }
   }
@@ -117,17 +117,22 @@ bool is_move_valid(Piece piece, Vector2 targetPos) {
   }
   case ROOK: {
     return (targetPos.x == piece.position.x || targetPos.y == piece.position.y);
-  }
+  } break;
   case BISHOP: {
-  }
-  case KNIGHT: {
-  }
-  case QUEEN: {
-  }
-  case KING: {
-  }
-  default:
     return false;
+  } break;
+  case KNIGHT: {
+    return false;
+  } break;
+  case QUEEN: {
+    return false;
+  } break;
+  case KING: {
+    return false;
+  } break;
+  default: {
+    return false;
+  } break;
   }
 }
 
@@ -215,7 +220,6 @@ void draw_pieces(int cellWidth, Vector2 gameScreenPos) {
 int main(void) {
   const int screenWidth = 1280;
   const int screenHeight = 800;
-  Vector2 gameScreenDimensions = {GAME_SCREEN_SIZE, GAME_SCREEN_SIZE};
   Vector2 gameScreenPos = {(screenWidth / 2) - (GAME_SCREEN_SIZE / 2),
                            (screenHeight / 2) - (GAME_SCREEN_SIZE / 2)};
 

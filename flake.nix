@@ -35,7 +35,7 @@
 
           installPhase = ''
             mkdir -p $out/bin
-            gcc main.c -o $out/bin/chessd -lraylib -lm
+            gcc main.c -o $out/bin/chessd -lraylib -lm -Wall -Werror
             chmod +x $out/bin/chessd
           '';
         };
