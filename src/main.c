@@ -54,7 +54,7 @@ Texture2D texture_from_image(const char *path) {
   Texture2D texture = LoadTextureFromImage(image);
   UnloadImage(image);
   return texture;
-};
+}
 
 void load_textures() {
   store.textures.darkCell =
@@ -74,7 +74,7 @@ void load_textures() {
   store.textures.whiteBishop = texture_from_image("src/assets/w_bishop.png");
   store.textures.whiteKnight = texture_from_image("src/assets/w_knight.png");
   store.textures.whiteRook = texture_from_image("src/assets/w_rook.png");
-};
+}
 
 void unload_textures() {
   UnloadTexture(store.textures.darkCell);
@@ -91,7 +91,7 @@ void unload_textures() {
   UnloadTexture(store.textures.whiteBishop);
   UnloadTexture(store.textures.whiteKnight);
   UnloadTexture(store.textures.whiteRook);
-};
+}
 
 bool is_move_valid(Piece piece, Vector2 targetPos) {
   if (targetPos.x < 0 || targetPos.x >= COLUMNS || targetPos.y < 0 ||
@@ -204,7 +204,7 @@ void draw_grid(Cell cell, int cellWidth, Vector2 gameScreenPos) {
                       gameScreenPos.y + cell.y * cellWidth};
   float scale = (float)cellWidth / texture.width;
   DrawTextureEx(texture, position, 0.0f, scale, WHITE);
-};
+}
 
 void draw_pieces(int cellWidth, Vector2 gameScreenPos) {
   for (int i = 0; i < store.pieceCount; i++) {
@@ -298,4 +298,4 @@ int main(void) {
   unload_textures();
   CloseWindow();
   return 0;
-};
+}

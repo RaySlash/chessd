@@ -35,10 +35,27 @@
 
           installPhase = ''
             mkdir -p $out/bin
-            gcc main.c -o $out/bin/chessd -lraylib -lm -Wall -Werror
+            gcc main.c -o $out/bin/chessd -lraylib -lm -Wall -Werror -pedantic
             chmod +x $out/bin/chessd
           '';
         };
+
+        packages.release = pkgs.stdenv.mkDerivation {
+          pname = "chessd";
+          version = "0.0.1";
+
+          src = ./src;
+
+          buildInputs = deps;
+          nativeBuildInputs = libs;
+
+          installPhase = ''
+            mkdir -p $out/bin
+            gcc main.c -o $out/bin/chessd -lraylib -lm -Wall -Werror -pedantic -O3
+            chmod +x $out/bin/chessd
+          '';
+        };
+
         devShells.default = pkgs.mkShell {
           shellHook = ''
             export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath libs}"
