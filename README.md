@@ -12,4 +12,4 @@
 
 # Credits
 
-- Thanks to JohnPablok and OpenGameArt for the board color and pieces. [Source (1x PNGs)](https://opengameart.org/content/chess-pieces-and-board-squares)
+- Thanks to JohnPablok and OpenGameArt for the board color and pieces.(128x PNG models) [Source (1x PNGs)](https://opengameart.org/content/chess-pieces-and-board-squares)
